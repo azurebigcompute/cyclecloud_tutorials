@@ -276,7 +276,7 @@ master node.
   workq                0     0 yes yes     0     0     0     0     0     0 Exec
   ```
 
-* With no more jobs in the queue, the execute nodes will start auto-stopping,
+* When the job finishes CycleCloud will automatically stop the execute nodes,
   and your cluster will return to just having the master node.
 
 ### <a name="2.3"></a> 2.3 Running Intel MPI pingpong test
@@ -300,13 +300,6 @@ performance of Azure RDMA InfiniBand interconnect in the LAMMPS cluster.
   This will bring up a 2-node cluster of H16r VMs to execute the pingpong connectivity test between the nodes:
   ![pingpongclusterup](images/pingpongclusterup.png)
 
-* Verify that the job is queued with `qstat -Q` command:
-  [ellen@ip-0A000404 ~]$ qstat -Q
-  Queue              Max   Tot Ena Str   Que   Run   Hld   Wat   Trn   Ext Type
-  ---------------- ----- ----- --- --- ----- ----- ----- ----- ----- ----- ----
-  workq                0     1 yes yes     1     0     0     0     0     0 Exec
-  ```
-  
 * When the job is finished check for output file _pingpong.sh.o1_ in the current directory which should 
   have content as follows:
   ```
