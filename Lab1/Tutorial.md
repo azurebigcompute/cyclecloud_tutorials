@@ -213,7 +213,7 @@ master node.
   [ellen@ip-0A000404 ~]$
   ```
 
-* You can verify that the job queue is empty by using the `qstat` command:
+* You can verify that the job queue is empty by using the `qstat -Q` command:
   ```
   [ellen@ip-0A000404 ~]$ qstat -Q
   Queue              Max   Tot Ena Str   Que   Run   Hld   Wat   Trn   Ext Type
@@ -222,25 +222,26 @@ master node.
   [ellen@ip-0A000404 ~]$
   ```
 
-* Change to the demo directory and submit the LAMMPS job using the existing `runpi.sh` script.
+* Run the LAMMPS job using `run_lammps_mpi.sh` script in the home folder:
   ```
-  [ellen@ip-0A000404 ~]$ cd demo/
-  [ellen@ip-0A000404 demo]$ ./runpi.sh
-  0[].ip-0A000404
-  [ellen@ip-0A000404 demo]$
+  [ellen@ip-0A000404 ~]$ qsub run_lammps_mpi.sh
   ```
 
-* If you're curious, you can view the contents of the `runpi.sh` script by
-  running the `cat` command. This script prepares a sample job that contains
-  1000 individual tasks, and submits that job using the `qsub` command.
+* If you're curious, you can view the contents of the `run_lammps_mpi.sh` script by
+  running the `cat` command. This script sets the LAMMPS job execute environment
+  and submits that job using PBS scheduler `qsub` command.
   ```
-  [ellen@ip-0A000404 demo]$ cat runpi.sh
-  #!/bin/bash
-  mkdir -p /shared/scratch/pi
-  cp ~/demo/pi.py /shared/scratch/pi
-  cp ~/demo/pi.sh /shared/scratch/pi
-  cd /shared/scratch/pi
-  qsub -J 1-1000 /shared/scratch/pi/pi.sh
+   #!/bin/bash
+  #PBS -j oe
+  #PBS -l nodes=4:ppn=16
+  LAMMPS_BIN=/shared/scratch/lammps/lmp_intel_cpu_intelmpi
+  INPUT=/shared/scratch/lammps/in.dipole
+  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/shared/scratch/lammps/libs
+  source /opt/intel/compilers_and_libraries/linux/mpi/bin64/mpivars.sh
+
+  cd ${PBS_O_WORKDIR}
+  NP=$(wc -l ${PBS_NODEFILE} | awk '{print $1}')
+  mpirun -np ${NP} ${LAMMPS_BIN} < ${INPUT}
   ```
 
 * Verify that the job is now in the queue
@@ -257,14 +258,12 @@ master node.
   provisioned in the Azure CycleCloud UI within a minute. ![CC Allocating
   Nodes](images/cc-allocating-nodes.ong.png) Note that CycleCloud will not
   provision more cores than the limit set on the cluster's autoscaling settings.
-  In this case, the sample job contains 1000 tasks, but CycleCloud will only
-  provision up to 100 cores worth of VMs. 
-
+  
 * After the execute nodes are provisioned, their status bars will turn green,
   and the job's tasks will start running. For non-tightly coupled jobs, where
   the individual tasks can independently execute, jobs will start running as
-  soon as any VM is ready. For tightly coupled jobs (i.e. MPI jobs), jobs will
-  not start executing until every VM associated with the jobs is ready.
+  soon as any VM is ready. For tightly coupled jobs (i.e. MPI job like LAMMPS), jobs will
+  not start executing until all VMs associated with the jobs are ready.
 
 * Verify that the job is complete by running the `qstat -Q` command
   periodically. The Queued column (`Que`) should be 0, indicating that no more
@@ -280,6 +279,100 @@ master node.
 * With no more jobs in the queue, the execute nodes will start auto-stopping,
   and your cluster will return to just having the master node.
 
+### <a name="2.3"></a> 2.3 Running Intel MPI pingpong test
+
+As additional exercise you may run Intel MPI pingpong benchmark test showing the 
+performance of Azure RDMA InfiniBand interconnect in the LAMMPS cluster.
+* Create the job script _pingpong.sh_ with the following content:
+  ```
+  #!/bin/bash
+  #PBS -j oe
+  #PBS -l nodes=2:ppn=16
+
+  source /opt/intel/compilers_and_libraries/linux/mpi/bin64/mpivars.sh
+  cd ${PBS_O_WORKDIR}
+  mpirun -np 2 -ppn 1 -hostfile ${PBS_NODEFILE} IMB-MPI1 pingpong
+  ```
+* Run the Intel MPI benchmark pingpong test by submitting the job to PBS queue:
+  ```
+  [ellen@ip-0A000404 ~]$ qsub pingpong.sh 
+  ```
+  This will bring up a 2-node cluster of H16r VMs to execute the pingpong connectivity test between the nodes:
+  ![pingpongclusterup](images/pingpongclusterup.png)
+
+* Verify that the job is queued with `qstat -Q` command:
+  [ellen@ip-0A000404 ~]$ qstat -Q
+  Queue              Max   Tot Ena Str   Que   Run   Hld   Wat   Trn   Ext Type
+  ---------------- ----- ----- --- --- ----- ----- ----- ----- ----- ----- ----
+  workq                0     1 yes yes     1     0     0     0     0     0 Exec
+  ```
+  
+* When the job is finished check for output file _pingpong.sh.o1_ in the current directory which should 
+  have content as follows:
+  ```
+  #------------------------------------------------------------
+  #    Intel (R) MPI Benchmarks 4.1 Update 1, MPI-1 part
+  #------------------------------------------------------------
+  # Date                  : Thu Aug 30 22:20:39 2018
+  # Machine               : x86_64
+  # System                : Linux
+  # Release               : 3.10.0-693.21.1.el7.x86_64
+  # Version               : #1 SMP Wed Mar 7 19:03:37 UTC 2018
+  # MPI Version           : 3.0
+
+  # Calling sequence was:
+
+  # IMB-MPI1 pingpong
+
+  # Minimum message length in bytes:   0
+  # Maximum message length in bytes:   4194304
+  #
+  # MPI_Datatype                   :   MPI_BYTE
+  # MPI_Datatype for reductions    :   MPI_FLOAT
+  # MPI_Op                         :   MPI_SUM
+  #
+  #
+
+  # List of Benchmarks to run:
+
+  # PingPong
+
+  #---------------------------------------------------
+  # Benchmarking PingPong
+  # #processes = 2
+  #---------------------------------------------------
+       #bytes #repetitions      t[usec]   Mbytes/sec
+            0         1000         3.28         0.00
+            1         1000         3.29         0.29
+            2         1000         3.29         0.58
+            4         1000         3.32         1.15
+            8         1000         3.71         2.06
+           16         1000         3.33         4.58
+           32         1000         2.83        10.78
+           64         1000         2.65        23.05
+          128         1000         2.71        44.96
+          256         1000         2.86        85.33
+          512         1000         2.96       165.18
+         1024         1000         3.23       302.71
+         2048         1000         3.85       507.64
+         4096         1000         5.04       774.90
+         8192         1000         6.29      1241.56
+        16384         1000         8.23      1897.94
+        32768         1000        10.66      2931.80
+        65536          640        17.19      3635.88
+       131072          320        29.42      4248.10
+       262144          160        57.17      4373.22
+       524288           80        99.67      5016.58
+      1048576           40       182.05      5493.07
+      2097152           20       348.72      5735.21
+      4194304           10       686.30      5828.36
+
+
+  # All processes entering MPI_Finalize
+  ```
+  Column t in the table shows the latency in pingpong internode communication. 
+  Latency of ~3us for messages of upto 2048 bytes proves that RDMA InfiniBand fabric was used for communication.
+  
 **Congratulations! You have completed the Lab 1 tutorial.**
 * Continue to [Lab 2 - Customizing an HPC cluster template](/Lab2/Tutorial.md),
   or
