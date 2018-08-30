@@ -410,11 +410,11 @@ create a new cluster in CycleCloud and specify that each node should use the
       quantmerge Merge multiple quantifications into a single file
   ```
   
-### Run parallel salmon job on the cluster
+### Run a parallel Salmon job on the cluster
 
-Having created a CycleCloud cluster with salmon application, you can now
-run salmon jobs in parallel, utilizing autoscalable cluster compute resources. 
-Please follow the below instructions to execute a sample salmon job on your cluster.
+Having created a CycleCloud cluster with Salmon application, you can now
+run Salmon jobs in parallel, utilizing autoscalable cluster compute resources. 
+Please follow the below instructions to execute a sample Salmon job on your cluster.
 _(borrowed from [Getting started with Salmon](https://combine-lab.github.io/salmon/getting_started/) guide)_
 
 * While on the master node, download sample input data (transcriptome for _Arabidopsis thaliana_) into $HOME/arabidopsis directory: 
