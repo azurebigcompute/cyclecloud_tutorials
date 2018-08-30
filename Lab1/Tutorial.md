@@ -255,26 +255,16 @@ master node.
 
 * The autoscaling hook in the PBS scheduler detects the job and submits a
   resource request to the Azure CycleCloud server. You will see nodes being
-  provisioned in the Azure CycleCloud UI within a minute. ![CC Allocating
-  Nodes](images/cc-allocating-nodes.ong.png) Note that CycleCloud will not
-  provision more cores than the limit set on the cluster's autoscaling settings.
+  provisioned in the Azure CycleCloud UI within a minute. 
+  ![LAMMPS cluster up](images/lammpsclusterup.png) 
+  Note that CycleCloud will not provision more cores than the limit set on the 
+  cluster's autoscaling settings.
   
 * After the execute nodes are provisioned, their status bars will turn green,
   and the job's tasks will start running. For non-tightly coupled jobs, where
   the individual tasks can independently execute, jobs will start running as
-  soon as any VM is ready. For tightly coupled jobs (i.e. MPI job like LAMMPS), jobs will
+  soon as any VM is ready. For tightly coupled jobs (i.e. LAMMPS MPI job), jobs will
   not start executing until all VMs associated with the jobs are ready.
-
-* Verify that the job is complete by running the `qstat -Q` command
-  periodically. The Queued column (`Que`) should be 0, indicating that no more
-  jobs are awaiting execution. For the above submission, jobs typically finish
-  in a minute or two. 
-  ```
-  [ellen@ip-0A000404 demo]$ qstat -Q
-  Queue              Max   Tot Ena Str   Que   Run   Hld   Wat   Trn   Ext Type
-  ---------------- ----- ----- --- --- ----- ----- ----- ----- ----- ----- ----
-  workq                0     0 yes yes     0     0     0     0     0     0 Exec
-  ```
 
 * When the job finishes CycleCloud will automatically stop the execute nodes,
   and your cluster will return to just having the master node.
