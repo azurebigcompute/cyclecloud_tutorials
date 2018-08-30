@@ -75,7 +75,7 @@ type that makes this process simple. However, for the purposes of demonstrating
 the CycleCloud Project system we will set up and install Salmon from
 scratch.
 
-### 4.1 Creating a new project for Salmon
+### Creating a new project for Salmon
 
 Use the `cyclecloud project init` command to initialize a new project. If you
 have completed [Lab2](/Lab2/Tutorial.md#3.2), you should have a
@@ -105,7 +105,7 @@ blobs  project.ini  specs  templates
 ellen@Azure:~/cyclecloud_projects/salmon$
 ```
 
-### 4.2 Staging the Salmon installer
+### Staging the Salmon installer
 
 * Download the Salmon installation file into the blobs directory (this lab uses Salmon version 0.11.2):
 
@@ -142,7 +142,7 @@ ellen@Azure:~/cyclecloud_projects/salmon$
 
 * Save and exit the editor.
 
-### 4.3 Adding a cluster-init script to the default spec
+### Adding a cluster-init script to the default spec
 
 The `specs` directory contains specs of a project and a project can have one or
 more specs. For example, a project may have a `default` spec that contains
@@ -223,7 +223,7 @@ ellen@Azure:~/cyclecloud_projects/salmon/specs/default/cluster-init/scripts$ ls
 ellen@Azure:~/cyclecloud_projects/salmon/specs/default/cluster-init/scripts$
 ```
 
-### 4.4 Using the `cluster-init/files` directory to stage files on every node
+### Using the `cluster-init/files` directory to stage files on every node
 
 It is sometimes very useful to stage small files on every node of a cluster.
 Examples of these are application configuration parameters or license files.
@@ -278,7 +278,7 @@ each node so that the `salmon` binary will be in the path of every user.
   ellen@Azure:~/cyclecloud_projects/salmon/specs/default/cluster-init$
   ```
 
-### 4.5 Uploading the CycleCloud project into the storage locker
+### Uploading the CycleCloud project into the storage locker
 
 One of the steps in setting up a new Azure CycleCloud installation is the
 creation of an Azure storage account and an accompanying blob container. This
@@ -349,7 +349,7 @@ and use that, but for the purpose of this lab [the service principal from Lab
   ellen@Azure:~/cyclecloud_projects/salmon$
   ```
 
-### 4.6 Create a new Cluster with the Salmon Project
+### Create a new Cluster with the Salmon Project
 
 Having uploaded the salmon project into the CycleCloud locker, you can now
 create a new cluster in CycleCloud and specify that each node should use the
@@ -409,3 +409,60 @@ create a new cluster in CycleCloud and specify that each node should use the
       swim  Perform super-secret operation
       quantmerge Merge multiple quantifications into a single file
   ```
+  
+### Run parallel salmon job on the cluster
+
+Having created a CycleCloud cluster with salmon application, you can now
+run salmon jobs in parallel, utilizing autoscalable cluster compute resources. 
+Please follow the below instructions to execute a sample salmon job on your cluster.
+_(borrowed from [Getting started with Salmon](https://combine-lab.github.io/salmon/getting_started/) guide)_
+
+* While on the master node, download sample input data (transcriptome for _Arabidopsis thaliana_) into $HOME/arabidopsis directory: 
+
+  ```sh
+  [cycleadmin@ip-0A000404 ~]$ mkdir ~/arabidopsis
+  [cycleadmin@ip-0A000404 ~]$ cd ~/arabidopsis
+  [cycleadmin@ip-0A000404 arabidopsis]$ curl ftp://ftp.ensemblgenomes.org/pub/plants/release-28/fasta/arabidopsis_thaliana/cdna/Arabidopsis_thaliana.TAIR10.28.cdna.all.fa.gz -o athal.fa.gz
+  ```
+  
+* Build an index on the transcriptome with _salmon index_ command:
+
+  ```sh
+  [cycleadmin@ip-0A000404 arabidopsis]$ salmon index -t athal.fa.gz -i athal_index
+  ```
+
+* Download sequencing data with _dl_tut_read.sh_ script:
+  ```sh
+  [cycleadmin@ip-0A000404 arabidopsis]$ wget https://github.com/azurebigcompute/cyclecloud_tutorials/blob/master/Lab3/scripts/dl_tut_reads.sh
+  [cycleadmin@ip-0A000404 arabidopsis]$ bash dl_tut_read.sh
+  ```
+  The download process might take a few minutes - grab a cup of coffee (or two...).
+  
+* Submit parallel salmon jobs (_salmon_quant.sh_) for all sequencing datasets in _data_ folder to SGE scheduler queue:
+  ```sh
+  [cycleadmin@ip-0A000404 arabidopsis]$ wget https://github.com/azurebigcompute/cyclecloud_tutorials/blob/master/Lab3/scripts/salmon_quant.sh
+  [cycleadmin@ip-0A000404 arabidopsis]$ for fn in data/DRR0161?? ; do qsub ./salmon_quant.sh $fn ; done
+  Your job 1 ("salmon_quant.sh") has been submitted
+  Your job 2 ("salmon_quant.sh") has been submitted
+  Your job 3 ("salmon_quant.sh") has been submitted
+  Your job 4 ("salmon_quant.sh") has been submitted
+  Your job 5 ("salmon_quant.sh") has been submitted
+  Your job 6 ("salmon_quant.sh") has been submitted
+  Your job 7 ("salmon_quant.sh") has been submitted
+  Your job 8 ("salmon_quant.sh") has been submitted
+  ```
+  After a short while you should observe CycleCloud rolling out a cluster of execute nodes (8 cores in total):
+  ![salmon cluster up](images/salmonclusterup.png)
+
+* Monitor the job queue with _watch_:
+  ```sh
+  [cycleadmin@ip-0A000404 arabidopsis]$ watch qstat
+  ```
+  ![watch qstat](images/watchqstat.png)
+
+  Observe as your jobs change the status from queued/waiting (qw) to running (r) and then finish and disappear from the queue.
+  After another while you should see your salmon cluster automatically winding down:
+  ![salmon cluster down](images/salmonclusterdown.png)
+
+
+
