@@ -228,8 +228,8 @@ master node.
   ```
 
 * If you're curious, you can view the contents of the `run_lammps_mpi.sh` script by
-  running the `cat` command. This script sets the LAMMPS job execute environment
-  and submits that job using PBS scheduler `qsub` command.
+  running the `cat` command. This script sets the LAMMPS job execute environment and starts 
+  an MPI job with `mpirun` command.
   ```
    #!/bin/bash
   #PBS -j oe
