@@ -464,5 +464,6 @@ _(borrowed from [Getting started with Salmon](https://combine-lab.github.io/salm
   After another while you should see your salmon cluster automatically winding down:
   ![salmon cluster down](images/salmonclusterdown.png)
 
+**Congratulations! You have completed the Lab 3 tutorial.**
 
 
