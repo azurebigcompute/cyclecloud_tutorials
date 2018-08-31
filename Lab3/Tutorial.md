@@ -431,14 +431,15 @@ _(borrowed from [Getting started with Salmon](https://combine-lab.github.io/salm
   [cycleadmin@ip-0A000404 arabidopsis]$ salmon index -t athal.fa.gz -i athal_index
   ```
 
-* Download sequencing data with _dl_tut_read.sh_ script:
+* Download sequencing data with [dl_tut_reads.sh](scripts/dl_tut_reads.sh) script:
   ```sh
   [cycleadmin@ip-0A000404 arabidopsis]$ wget https://github.com/azurebigcompute/cyclecloud_tutorials/blob/master/Lab3/scripts/dl_tut_reads.sh
   [cycleadmin@ip-0A000404 arabidopsis]$ bash dl_tut_read.sh
   ```
   The download process might take a few minutes - grab a cup of coffee (or two...).
   
-* Submit parallel salmon jobs (_salmon_quant.sh_) for all sequencing datasets in _data_ folder to SGE scheduler queue:
+* Submit parallel Salmon jobs [salmon_quant.sh](scripts/salmon_quant.sh) for all downloaded 
+  sequencing datasets to SGE scheduler queue:
   ```sh
   [cycleadmin@ip-0A000404 arabidopsis]$ wget https://github.com/azurebigcompute/cyclecloud_tutorials/blob/master/Lab3/scripts/salmon_quant.sh
   [cycleadmin@ip-0A000404 arabidopsis]$ for fn in data/DRR0161?? ; do qsub ./salmon_quant.sh $fn ; done
