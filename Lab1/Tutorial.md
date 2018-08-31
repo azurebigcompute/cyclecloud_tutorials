@@ -166,6 +166,7 @@ LAMMPS as a solver.
 * For `Execute VM Type`, click on "Choose" and select a virtual machine type 
   that you would like to use for execution nodes. We recommend "H16r" if
   you have quota for these. [[More info on Azure service limits and quotas](https://docs.microsoft.com/en-us/azure/azure-subscription-service-limits)]
+
 * In the networking subnet dropdown, select the subnet in your resource group
   which has "-compute" as a suffix. This subnet was created as part of the ARM deployment.
   ![CC Cluster Required Settings](images/cc-cluster-required-settings.png)
@@ -186,7 +187,7 @@ LAMMPS as a solver.
   for the green status bar before proceeding to the next step.
   ![CC Cluster Ready](images/cc-cluster-ready.png)
 
-### <a name="2.2"></a> 2.2 Connecting to the master node and submitting a LAMMPS job
+### <a name="2.2"></a> 2.2 Connecting to the master node and submitting a job
 
 The SSH public key you specified as part of the deployment is stored in the Azure CycleCloud application server and pushed into each cluster that you create. As a result, you can use your SSH private key to log into the
 master node.
@@ -222,14 +223,63 @@ master node.
   [ellen@ip-0A000404 ~]$
   ```
 
-* Run the LAMMPS job using `run_lammps_mpi.sh` script in the home folder:
+* Change to the demo directory and submit a demo PI job using the existing `runpi.sh` script.
   ```
+  [ellen@ip-0A000404 ~]$ cd demo/
+  [ellen@ip-0A000404 demo]$ ./runpi.sh
+  0[].ip-0A000404
+  [ellen@ip-0A000404 demo]$
+  ```
+
+* If you're curious, you can view the contents of the `runpi.sh` script by
+  running the `cat` command. This script prepares a sample job that contains
+  1000 individual tasks, and submits that job using the `qsub` command.
+  ```
+  [ellen@ip-0A000404 demo]$ cat runpi.sh
+  #!/bin/bash
+  mkdir -p /shared/scratch/pi
+  cp ~/demo/pi.py /shared/scratch/pi
+  cp ~/demo/pi.sh /shared/scratch/pi
+  cd /shared/scratch/pi
+  qsub -J 1-1000 /shared/scratch/pi/pi.sh
+  ```
+
+* Verify that the job is now in the queue
+  ```
+  [ellen@ip-0A000404 demo]$ qstat -Q
+  Queue              Max   Tot Ena Str   Que   Run   Hld   Wat   Trn   Ext Type
+  ---------------- ----- ----- --- --- ----- ----- ----- ----- ----- ----- ----
+  workq                0     1 yes yes     1     0     0     0     0     0 Exec
+  ```
+
+* The autoscaling hook in the PBS scheduler detects the job and submits a
+  resource request to the Azure CycleCloud server. You will see nodes being
+  provisioned in the Azure CycleCloud UI within a minute. 
+  ![LAMMPS cluster up](images/lammpsclusterup.png) 
+  Note that CycleCloud will not provision more cores than the limit set on the 
+  cluster's autoscaling settings.
+  
+* After the execute nodes are provisioned, their status bars will turn green,
+  and the job's tasks will start running. For non-tightly coupled jobs, where
+  the individual tasks can independently execute, jobs will start running as
+  soon as any VM is ready. For tightly coupled jobs (i.e. LAMMPS MPI job), jobs will
+  not start executing until all VMs associated with the jobs are ready.
+
+* When the job finishes CycleCloud will automatically stop the execute nodes,
+  and your cluster will return to just having the master node.
+
+### <a name="2.3"></a> 2.3 Submitting an MPI job
+
+**NOTE:** You must have elevated core quota for H-series VMs in your subscription 
+to at least 32 and select H16r size for cluster execute nodes to be able to run this exercise. 
+
+* Queue a LAMMPS job using `run_lammps_mpi.sh` script in the master node $HOME folder:
+  ```
+  [ellen@ip-0A000404 demo]$ cd
   [ellen@ip-0A000404 ~]$ qsub run_lammps_mpi.sh
   ```
 
-* If you're curious, you can view the contents of the `run_lammps_mpi.sh` script by
-  running the `cat` command. This script sets the LAMMPS job execute environment and starts 
-  an MPI job with `mpirun` command.
+  The script sets the LAMPPS job execution environment and starts an MPI job with `mpirun` command:
   ```
    #!/bin/bash
   #PBS -j oe
@@ -253,26 +303,14 @@ master node.
   [ellen@ip-0A000404 ~]$
   ```
 
-* The autoscaling hook in the PBS scheduler detects the job and submits a
-  resource request to the Azure CycleCloud server. You will see nodes being
-  provisioned in the Azure CycleCloud UI within a minute. 
-  ![LAMMPS cluster up](images/lammpsclusterup.png) 
-  Note that CycleCloud will not provision more cores than the limit set on the 
-  cluster's autoscaling settings.
-  
-* After the execute nodes are provisioned, their status bars will turn green,
-  and the job's tasks will start running. For non-tightly coupled jobs, where
-  the individual tasks can independently execute, jobs will start running as
-  soon as any VM is ready. For tightly coupled jobs (i.e. LAMMPS MPI job), jobs will
-  not start executing until all VMs associated with the jobs are ready.
+### <a name="2.4"></a> (optional) 2.4 Running Intel MPI pingpong test
 
-* When the job finishes CycleCloud will automatically stop the execute nodes,
-  and your cluster will return to just having the master node.
-
-### <a name="2.3"></a> 2.3 Running Intel MPI pingpong test
-
-As additional exercise you may run Intel MPI pingpong benchmark test showing the 
+As an additional exercise you may run an Intel MPI pingpong benchmark test showing the 
 performance of Azure RDMA InfiniBand interconnect in the LAMMPS cluster.
+
+**NOTE:** You must have elevated core quota for H-series VMs in your subscription 
+to at least 32 and select H16r size for cluster execute nodes to be able to run this exercise. 
+
 * Create the job script _pingpong.sh_ with the following content:
   ```
   #!/bin/bash
@@ -353,8 +391,8 @@ performance of Azure RDMA InfiniBand interconnect in the LAMMPS cluster.
 
   # All processes entering MPI_Finalize
   ```
-  Column t in the table shows the latency in pingpong internode communication. 
-  Latency of ~3us for messages of upto 2048 bytes proves that RDMA InfiniBand fabric was used for communication.
+  Column t in the table shows the latency of internode communication. 
+  Latency of ~3us for messages of upto 2048 bytes proves RDMA InfiniBand fabric as communication carrier.
   
 **Congratulations! You have completed the Lab 1 tutorial.**
 * Continue to [Lab 2 - Customizing an HPC cluster template](/Lab2/Tutorial.md),
