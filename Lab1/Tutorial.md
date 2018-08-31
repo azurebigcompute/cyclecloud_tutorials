@@ -268,7 +268,7 @@ master node.
 * When the job finishes CycleCloud will automatically stop the execute nodes,
   and your cluster will return to just having the master node.
 
-### <a name="2.3"></a> 2.3 Submitting an MPI job
+### <a name="2.3"></a> 2.3 Submitting an MPI LAMMPS job
 
 **NOTE: You must have core quota for H-series VMs in your subscription elevated to at least 32 
 and select H16r size for cluster execute nodes to be able to run this exercise.** 
