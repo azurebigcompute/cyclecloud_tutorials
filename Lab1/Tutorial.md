@@ -255,7 +255,7 @@ master node.
 * The autoscaling hook in the PBS scheduler detects the job and submits a
   resource request to the Azure CycleCloud server. You will see nodes being
   provisioned in the Azure CycleCloud UI within a minute. 
-  ![LAMMPS cluster up](images/lammpsclusterup.png) 
+  ![CC Allocating Nodes](images/cc-allocating-nodes.ong.png)
   Note that CycleCloud will not provision more cores than the limit set on the 
   cluster's autoscaling settings.
   
@@ -270,8 +270,8 @@ master node.
 
 ### <a name="2.3"></a> 2.3 Submitting an MPI job
 
-**NOTE:** You must have elevated core quota for H-series VMs in your subscription 
-to at least 32 and select H16r size for cluster execute nodes to be able to run this exercise. 
+**NOTE: You must have core quota for H-series VMs in your subscription elevated to at least 32 
+and select H16r size for cluster execute nodes to be able to run this exercise.** 
 
 * Queue a LAMMPS job using `run_lammps_mpi.sh` script in the master node $HOME folder:
   ```
@@ -302,14 +302,21 @@ to at least 32 and select H16r size for cluster execute nodes to be able to run 
   workq                0     1 yes yes     1     0     0     0     0     0 Exec
   [ellen@ip-0A000404 ~]$
   ```
+* The autoscaling hook in the PBS scheduler detects the job and submits a
+  resource request to the Azure CycleCloud server. You will shortly see nodes of 
+  the MPI cluster being provisioned in the Azure CycleCloud UI: 
+  ![LAMMPS cluster up](images/lammpsclusterup.png) 
+
+* When the job finishes CycleCloud will automatically stop the execute nodes,
+  and your cluster will return to just having the master node.
 
 ### <a name="2.4"></a> (optional) 2.4 Running Intel MPI pingpong test
 
 As an additional exercise you may run an Intel MPI pingpong benchmark test showing the 
 performance of Azure RDMA InfiniBand interconnect in the LAMMPS cluster.
 
-**NOTE:** You must have elevated core quota for H-series VMs in your subscription 
-to at least 32 and select H16r size for cluster execute nodes to be able to run this exercise. 
+**NOTE: You must have core quota for H-series VMs in your subscription elevated to at least 32 
+and select H16r size for cluster execute nodes to be able to run this exercise.**
 
 * Create the job script _pingpong.sh_ with the following content:
   ```
