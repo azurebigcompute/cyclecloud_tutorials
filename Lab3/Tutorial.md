@@ -441,7 +441,7 @@ _(borrowed from [Getting started with Salmon](https://combine-lab.github.io/salm
 * Submit parallel Salmon jobs [salmon_quant.sh](scripts/salmon_quant.sh) for all downloaded 
   sequencing datasets to SGE scheduler queue:
   ```sh
-  [cycleadmin@ip-0A000404 arabidopsis]$ wget https://raw.githubusercontent.com/azurebigcompute/cyclecloud_tutorials/blob/master/Lab3/scripts/salmon_quant.sh
+  [cycleadmin@ip-0A000404 arabidopsis]$ wget https://raw.githubusercontent.com/azurebigcompute/cyclecloud_tutorials/master/Lab3/scripts/salmon_quant.sh
   [cycleadmin@ip-0A000404 arabidopsis]$ for fn in data/DRR0161?? ; do qsub ./salmon_quant.sh $fn ; done
   Your job 1 ("salmon_quant.sh") has been submitted
   Your job 2 ("salmon_quant.sh") has been submitted
