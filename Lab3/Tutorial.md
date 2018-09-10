@@ -417,12 +417,10 @@ run Salmon jobs in parallel, utilizing autoscalable cluster compute resources.
 Please follow the below instructions to execute a sample Salmon job on your cluster.
 _(borrowed from [Getting started with Salmon](https://combine-lab.github.io/salmon/getting_started/) guide)_
 
-* While on the master node, download sample input data (transcriptome for _Arabidopsis thaliana_) into $HOME/arabidopsis directory: 
+* While on the master node, download sample input data (transcriptome and sequencing data for _Arabidopsis thaliana_) into $HOME directory: 
 
   ```sh
-  [cycleadmin@ip-0A000404 ~]$ mkdir ~/arabidopsis
-  [cycleadmin@ip-0A000404 ~]$ cd ~/arabidopsis
-  [cycleadmin@ip-0A000404 arabidopsis]$ curl ftp://ftp.ensemblgenomes.org/pub/plants/release-28/fasta/arabidopsis_thaliana/cdna/Arabidopsis_thaliana.TAIR10.28.cdna.all.fa.gz -o athal.fa.gz
+  [cycleadmin@ip-0A000404 ~]$ curl https://bigcompbasestore.blob.core.windows.net/public/salmon_data.tar | tar x
   ```
   
 * Build an index on the transcriptome with _salmon index_ command:
@@ -431,13 +429,6 @@ _(borrowed from [Getting started with Salmon](https://combine-lab.github.io/salm
   [cycleadmin@ip-0A000404 arabidopsis]$ salmon index -t athal.fa.gz -i athal_index
   ```
 
-* Download sequencing data with [dl_tut_reads.sh](scripts/dl_tut_reads.sh) script:
-  ```sh
-  [cycleadmin@ip-0A000404 arabidopsis]$ wget https://raw.githubusercontent.com/azurebigcompute/cyclecloud_tutorials/master/Lab3/scripts/dl_tut_reads.sh
-  [cycleadmin@ip-0A000404 arabidopsis]$ bash dl_tut_read.sh
-  ```
-  The download process might take a few minutes - grab a cup of coffee (or two...).
-  
 * Submit parallel Salmon jobs [salmon_quant.sh](scripts/salmon_quant.sh) for all downloaded 
   sequencing datasets to SGE scheduler queue:
   ```sh
@@ -453,17 +444,14 @@ _(borrowed from [Getting started with Salmon](https://combine-lab.github.io/salm
   Your job 7 ("salmon_quant.sh") has been submitted
   Your job 8 ("salmon_quant.sh") has been submitted
   ```
-  After a short while you should observe CycleCloud rolling out a cluster of execute nodes (8 cores in total):
+  After a short while you should observe in Clusters menu as CycleCloud is rolling out a cluster of execute nodes (8 cores in total):
   ![salmon cluster up](images/salmonclusterup.png)
 
-* Monitor the job queue with _watch_:
-  ```sh
-  [cycleadmin@ip-0A000404 arabidopsis]$ watch qstat
-  ```
-  ![watch qstat](images/watchqstat.png)
+* Monitor the jobs in CycleCloud Jobs menu:
+  ![salmon_jobs](images/salmonjobs.png)
 
-  Observe as your jobs change the status from queued/waiting (qw) to running (r) and then finish and disappear from the queue.
-  After another while you should see your salmon cluster automatically winding down:
+  Observe as your jobs change the status from queued/waiting to running and then finish and disappear from the queue.
+  After another while you should see your Salmon cluster automatically winding down:
   ![salmon cluster down](images/salmonclusterdown.png)
 
 **Congratulations! You have completed the Lab 3 tutorial.**
