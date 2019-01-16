@@ -1,4 +1,4 @@
-# Setup Azure CycleCloud via ARM + Creating an autoscaling HPC Cluster
+# Setup Azure CycleCloud via ARM
 
 This lab focuses on helping you become familiar with Azure CycleCloud, a tool
 for orchestrating HPC clusters in Azure.
@@ -45,15 +45,7 @@ Type "help" to learn about Cloud Shell
 ellen@Azure:~$
 ```
 
-### 1.2 Figure out your username
-
-```sh
-ellen@Azure:~$ whoami
-ellen
-ellen@Azure:~$
-```
-
-### 1.3 Generate an SSH keypair (if you do not already have one)
+### 1.2 Generate an SSH keypair (if you do not already have one)
 
 * In Cloud Shell, run:
 
@@ -79,7 +71,7 @@ ellen@Azure:~$
   ellen@Azure:~$
   ```
 
-### 1.4 Retrieve the SSH-pubkey
+### 1.3 Retrieve the SSH-pubkey
 
   ```sh
   ellen@Azure:~$ cat ~/.ssh/id_rsa.pub
@@ -87,9 +79,9 @@ ellen@Azure:~$
   ellen@Azure:~$
   ```
 
-### <a name="1.5"></a>1.5 Create a service principal
+### 1.4 Create a service principal
 
-Substitute a custom value for `cyclecloudlabs` as the name of your service principal. The name must be unique across all of Azure.
+Substitute a custom value for `cyclecloudlabs` as the name of your service principal. The name must be unique across all of your AD domain.
 
 ```sh
 ellen@Azure:~$ az ad sp create-for-rbac --name cyclecloudlabs
@@ -104,7 +96,7 @@ ellen@Azure:~$ az ad sp create-for-rbac --name cyclecloudlabs
 
 _Save this output somewhere. You will need it in the section below as well as later in this lab and in other labs._
 
-### 1.6 Deploy Azure CycleCloud
+### 1.5 Deploy Azure CycleCloud
 [![Deploy to
 Azure](https://azuredeploy.net/deploybutton.svg)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FCycleCloudCommunity%2Fcyclecloud_arm%2Fdeploy-azure%2Fazuredeploy.json)
 
@@ -126,7 +118,7 @@ After you accept the Terms & Conditions, press the "Purchase" button to begin de
 The deployment process runs an installation script as a custom script extension,
 which installs and sets up CycleCloud. This process takes between 5 and 8 mins.
 
-### <a name="1.7"></a> 1.7 Retrieve the Domain Name (FQDN) of the Azure CycleCloud VM
+### 1.6 Retrieve the Domain Name (FQDN) of the Azure CycleCloud VM
 When the deployment is completed you can retrieve the fully qualified domain
 name of the Azure CycleCloud VM from the Outputs tab in the Azure portal: ![Deployment Output](images/deployment-output.png)
 
@@ -137,7 +129,7 @@ ellen@Azure:~$ az group deployment list -g MyResourceGroup --query "[0].properti
 ellen@Azure:~$
 ```
 
-### 1.8 Logging into the Azure CycleCloud server for the first time
+### 1.7 Logging into the Azure CycleCloud server for the first time
 * In your web browser go to `https://{FQDN}` (where FQDN is the address retrieved
   in the previous step). The installation uses a self-signed SSL certificate,
   which may show up with a warning in your browser.
@@ -153,10 +145,9 @@ ellen@Azure:~$
   ![Create Account](images/cc-create-account.png)
 
 ## 2. Starting an auto-scaling HPC cluster
-In this section, you will start a cluster using PBS Pro as a scheduler and
-LAMMPS as a solver.
+In this section, you will start a cluster using the default LAMMPS application template
 
-### <a name="2.1"></a> 2.1 Start a new LAMMPS cluster in Azure CycleCloud
+### 2.1 Start a new LAMMPS cluster in Azure CycleCloud
 
 * On the front page, find the LAMMPS cluster icon and select it.
   ![CC Cluster Wall](images/cc-cluster-wall.png)
@@ -178,7 +169,7 @@ LAMMPS as a solver.
 * Click the "Save" button on the bottom to create this cluster.
 * Click the "Start" button to provision the cluster resources in Azure.
   ![CC Cluster Prepared](images/cc-cluster-prepared.png)
-  * Starting up the cluster for the first time takes about 10 minutess. By
+  * Starting up the cluster for the first time takes about 10 minutes. By
     default, only the master (or "head") node of the cluster is started. Azure
     CycleCloud provisions all the necessary network and storage resources needed
     by the master node, and also sets up the scheduling environment in the
@@ -187,7 +178,7 @@ LAMMPS as a solver.
   for the green status bar before proceeding to the next step.
   ![CC Cluster Ready](images/cc-cluster-ready.png)
 
-### <a name="2.2"></a> 2.2 Connecting to the master node and submitting a job
+### 2.2 Connecting to the master node and submitting a job
 
 The SSH public key you specified as part of the deployment is stored in the Azure CycleCloud application server and pushed into each cluster that you create. As a result, you can use your SSH private key to log into the
 master node.
